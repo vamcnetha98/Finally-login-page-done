@@ -1,0 +1,182 @@
+<!-- Full HTML Code for TEAM VAMC Login Page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TEAM VAMC</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Playfair Display', serif;
+      transition: background 1s ease;
+    }
+    .theme-1 { background: linear-gradient(-45deg, #1e0033, #32004d, #4e0066, #000000); }
+    .theme-2 { background: linear-gradient(-45deg, #001f3f, #003366, #000033, #000000); }
+    .theme-3 { background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #000000); }
+    .theme-4 { background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #000000); }
+    .sparkle-bg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+      background-image: radial-gradient(white 1px, transparent 1px);
+      background-size: 20px 20px;
+      animation: sparkleAnim 30s linear infinite;
+      opacity: 0.07;
+    }
+    @keyframes sparkleAnim {
+      from { transform: translate(0, 0); }
+      to { transform: translate(100px, 100px); }
+    }
+    .glow-box {
+      background: linear-gradient(145deg, #250038, #1c002e);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 20px rgba(124, 0, 255, 0.4), 0 0 40px rgba(255, 0, 200, 0.2);
+    }
+    .glow-hover:hover { box-shadow: 0 0 25px 4px rgba(0, 255, 255, 0.6); }
+    .glow-input {
+      background: linear-gradient(90deg, #2e003f, #3a0054);
+      border: 1px solid #6f00ff;
+    }
+    .glow-text {
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; }
+      to { text-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center text-white relative overflow-hidden theme-1" id="body">
+  <div class="sparkle-bg z-0"></div>
+  <div id="loginPage" class="relative w-full max-w-sm p-8 rounded-2xl glow-box z-10">
+    <h2 class="text-3xl font-extrabold mb-6 text-center text-purple-300 tracking-widest glow-text">TEAM VAMC</h2>
+    <form class="space-y-6" onsubmit="checkKey(event)">
+      <p class="text-center text-purple-200 uppercase font-bold text-sm mb-4 tracking-wide">WELCOME - TEAM VAMC</p>
+      <div>
+        <input type="password" id="password" placeholder="Enter Access Key" autofocus class="w-full px-4 py-3 rounded-lg glow-input text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-pink-500" />
+      </div>
+      <button id="loginBtn" type="submit" class="w-full bg-gradient-to-r from-fuchsia-600 to-cyan-400 hover:from-pink-600 hover:to-blue-400 transition-all duration-300 py-3 rounded-lg font-bold text-white uppercase tracking-wide glow-hover flex justify-center items-center">
+        <span id="btnText">Login</span>
+        <svg id="spinner" class="animate-spin ml-2 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+      </button>
+    </form>
+    <div class="mt-6 text-center">
+      <a href="https://t.me/vamc_hacker?text=HELLO%20BROTHER%20SEND%20ME%20THE%20HACK%20PRICE%20LIST%20AND%20THANK%20YOU" target="_blank" class="inline-flex items-center space-x-2 px-4 py-2 mt-4 bg-blue-500 hover:bg-blue-600 glow-hover transition-all duration-300 rounded-lg font-semibold uppercase">
+        <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram" class="w-5 h-5">
+        <span>Get Access</span>
+      </a>
+    </div>
+  </div>
+
+  <div id="errorModal" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-60 hidden">
+    <div class="bg-white text-black rounded-xl p-6 max-w-sm w-full text-center shadow-lg">
+      <h2 class="text-lg font-bold mb-2">Login Error</h2>
+      <p id="modalErrorText" class="mb-4">Your entered key is invalid. Please get a new one.</p>
+      <a href="https://t.me/vamc_hacker" target="_blank" class="inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Get Key</a>
+      <button onclick="closeModal()" class="block mt-4 text-sm text-gray-600 hover:text-gray-800">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDZ_1pnu542PgGTums6-i-rFWrP4BGHjDo",
+      authDomain: "team-vamc-web.firebaseapp.com",
+      databaseURL: "https://team-vamc-web-default-rtdb.firebaseio.com",
+      projectId: "team-vamc-web",
+      storageBucket: "team-vamc-web.appspot.com",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function getDeviceID() {
+      let deviceId = localStorage.getItem("deviceId");
+      if (!deviceId) {
+        deviceId = "dev-" + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem("deviceId", deviceId);
+      }
+      return deviceId;
+    }
+
+    function checkKey(e) {
+      e.preventDefault();
+      const key = document.getElementById("password").value.trim();
+      const btnText = document.getElementById("btnText");
+      const spinner = document.getElementById("spinner");
+      const deviceId = getDeviceID();
+
+      if (!key) return showError("Please enter the access key");
+
+      btnText.textContent = "Checking...";
+      spinner.classList.remove("hidden");
+
+      db.ref("keys/" + key).once("value", (snap) => {
+        const data = snap.val();
+        if (!data) return showError("Invalid key. Please get a valid one.");
+
+        const now = Date.now();
+        if (data.expiresAt <= now) return showError("Key expired");
+
+        const devices = data.devices || {};
+        const deviceIDs = Object.keys(devices);
+
+        let maxDevices = 1;
+        if (data.maxDevices === "unlimited") {
+          maxDevices = Infinity;
+        } else if (!isNaN(data.maxDevices)) {
+          maxDevices = parseInt(data.maxDevices);
+        }
+
+        if (devices[deviceId] || deviceIDs.length < maxDevices) {
+          if (!devices[deviceId]) {
+            db.ref("keys/" + key + "/devices/" + deviceId).set(now);
+          }
+          window.location.href = `https://mainpageteamvamc.netlify.app/?key=${key}`;
+        } else {
+          db.ref("blacklist/" + key + "_" + deviceId).set({ timestamp: now, reason: "Device limit reached" });
+          showError("Device limit reached. This key is now blacklisted for your device.");
+        }
+
+        btnText.textContent = "Login";
+        spinner.classList.add("hidden");
+      });
+    }
+
+    function showError(msg) {
+      document.getElementById("modalErrorText").textContent = msg;
+      document.getElementById("errorModal").classList.remove("hidden");
+      document.getElementById("btnText").textContent = "Login";
+      document.getElementById("spinner").classList.add("hidden");
+    }
+
+    function closeModal() {
+      document.getElementById("errorModal").classList.add("hidden");
+    }
+
+    document.getElementById('password').addEventListener('input', () => {
+      closeModal();
+    });
+
+    const themes = ['theme-1', 'theme-2', 'theme-3', 'theme-4'];
+    let current = 0;
+    const body = document.getElementById('body');
+    function changeTheme() {
+      body.classList.remove(...themes);
+      current = (current + 1) % themes.length;
+      body.classList.add(themes[current]);
+    }
+
+    document.body.addEventListener('click', (e) => {
+      if (!['INPUT', 'BUTTON'].includes(e.target.tagName)) {
+        changeTheme();
+      }
+    });
+
+    setInterval(changeTheme, 10000);
+  </script>
+</body>
+</html>
